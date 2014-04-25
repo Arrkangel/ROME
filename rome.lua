@@ -1,8 +1,14 @@
 --Framework for 2D platforming games in Löve
 rome={}
-world={}
-actors={}
-sprites={}
+rome.world={}
+rome.actors={}
+rome.sprites={}
+
+local world=rome.world
+local actors=rome.actors
+local sprites=rome.sprites
+
+love.filesystem.load("leveldict.lua")()
 
 
 
@@ -16,24 +22,59 @@ function rome.init()
 	player.spriteID=1
 	local function update(self,dt) return 0 end
 	player.update=update
-	table.insert(actors,player)
+	table.insert(rome.actors,player)
 end
 
 function rome.setSprite(id,sprite)
-	sprites[id]=sprite
+	rome.sprites[id]=sprite
 end
 
-function rome.updateActors(dt)
-	for index,value in ipairs(actors) do
+function rome.actors.update(dt)
+	for index,value in ipairs(rome.actors) do
 		value:update(dt)
 	end
 end
 
+function rome.world.update()
+
+end
+function rome.world.parseLevel(imageData)
+	local width,height = imageData:getDimensions()
+	rome.world.width=width
+	rome.world.height=height
+	print(width..height)
+	for x=0,width-1 do
+		for y=0,height-1 do
+			print("Hello")
+			local r,g,b,a = imageData:getPixel(x,y)
+			colorstring=tile.toString(r,g,b)
+			print(colorstring)
+			local tiletype=tile[colorstring]
+			print(tiletype.name)
+			world[width*x+y]=tiletype
+		end
+	end
+
+end
+
+function rome.world.renderLevel()
+	for x=0,world.width-1,1 do
+		for y=0,world.height-1,1 do
+			local type=world[world.width*x+y]
+			local sprite=sprites[type.spriteID]
+			if sprite then
+				love.graphics.draw(sprite,x*20,y*20)
+			end
+		end
+	end
+end
+
+
 
 function rome.renderActors()
-	for index,value in ipairs(actors) do
+	for index,value in ipairs(rome.actors) do
 		local id=value.spriteID
-		local sprite=sprites[id]
+		local sprite=rome.sprites[id]
 		if sprite then
 			love.graphics.draw(sprite,value.pos.x,value.pos.y)		
 		end
@@ -60,6 +101,7 @@ function standardPlayerMovement(actor,dt)
    actor.pos.x=x
    actor.pos.y=y
 end
+
 
 
 
