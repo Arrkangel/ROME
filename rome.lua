@@ -98,7 +98,8 @@ function rome.world.calculateCameraOffset()
 	local px=player.pos.x
 	local py=player.pos.y
 
-	xcam=-math.Clamp(px-320,0,640)
+	xcam=-math.Clamp(px-(world.width*5),0,world.width*10)
+	ycam=-math.Clamp(py-(world.height*5),0,world.height*10)
 
 	world.xcam=xcam
 
@@ -121,6 +122,7 @@ function rome.renderActors()
 end
 
 function standardPlayerMovement(actor,dt)
+	--actor and player used interchangeably here, thats bad, fix this
 	local speed=100
 	local x=actor.pos.x
 	local y=actor.pos.y
@@ -178,16 +180,6 @@ function standardPlayerMovement(actor,dt)
 		player.jump = false
 		
 	end
-	
-
-
-
-
-
-
-
-
-
 
 end
 

@@ -1,9 +1,9 @@
-ROME
+RÖME
 ====
 
 It wasn't built in a day...
 
-When in ROME, format code as the ROME does
+When in RÖME, format code as the RÖME does
 
 All filepaths lead to ROME
 

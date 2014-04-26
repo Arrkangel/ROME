@@ -31,7 +31,7 @@ end
 function love.draw()
 	rome.world.renderLevel()
 	rome.renderActors()
-	love.graphics.print('Welcome to RÖME!',0,0)
+	love.graphics.print('Welcome to RÖME! -- Beneath the Surface -- The Center of the World is the Top of the Universe',0,0)
 end
 
 
