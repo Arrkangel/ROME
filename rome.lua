@@ -33,6 +33,12 @@ function rome.init()
 	world.gravity=200
 	world.xcam=0
 	world.ycam=0
+
+	--set up box2d
+	love.physics.setMeter(64)
+	physworld=love.physics.newWorld(0,9.81*64,true)
+	
+
 end
 
 function rome.setSprite(id,sprite)
