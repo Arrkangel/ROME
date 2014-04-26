@@ -77,7 +77,7 @@ function rome.world.renderLevel()
 			local type=world[world.width*x+y]
 			local sprite=sprites[type.spriteID]
 			if sprite then
-				love.graphics.draw(sprite,x*20+world.xcam,y*20)
+				love.graphics.draw(sprite,x*20+world.xcam,y*20+world.ycam)
 			end
 		end
 	end
@@ -100,8 +100,10 @@ function rome.world.calculateCameraOffset()
 
 	xcam=-math.Clamp(px-(world.width*5),0,world.width*10)
 	ycam=-math.Clamp(py-(world.height*5),0,world.height*10)
+	print(xcam.." "..ycam)
 
 	world.xcam=xcam
+	world.ycam=ycam
 
 end
 
@@ -116,7 +118,7 @@ function rome.renderActors()
 		local id=value.spriteID
 		local sprite=rome.sprites[id]
 		if sprite then
-			love.graphics.draw(sprite,value.pos.x+world.xcam,value.pos.y)		
+			love.graphics.draw(sprite,value.pos.x+world.xcam,value.pos.y+world.ycam)		
 		end
 	end
 end

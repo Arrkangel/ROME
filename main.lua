@@ -18,7 +18,7 @@ function love.load()
 	rome.setSprite(3,wall)
 
 	player.update=standardPlayerMovement
-	local testlevel=love.image.newImageData("level/testlevel.png")
+	local testlevel=love.image.newImageData("level/testlevel2.png")
 	rome.world.parseLevel(testlevel)
 	
 end
