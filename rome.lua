@@ -1,6 +1,7 @@
 --Framework for 2D platforming games in Löve
 rome={}
 rome.world={}
+rome.world.colliders={}
 rome.actors={}
 rome.sprites={}
 
@@ -9,12 +10,13 @@ local actors=rome.actors
 local sprites=rome.sprites
 
 love.filesystem.load("leveldict.lua")()
+love.filesystem.load("colliders.lua")()
 
 
 
 function rome.init()
 	--create player actor
-	local player={}
+	player={}
 	local pos={}
 	pos.x=100
 	pos.y=100
@@ -22,7 +24,15 @@ function rome.init()
 	player.spriteID=1
 	local function update(self,dt) return 0 end
 	player.update=update
+	player.collider=colliders.newBoxCollider(pos.x,pos.y,16,16)
+	player.jump=false
+	player.jumpval=0
 	table.insert(rome.actors,player)
+
+	--world vars
+	world.gravity=200
+	world.xcam=0
+	world.ycam=0
 end
 
 function rome.setSprite(id,sprite)
@@ -45,13 +55,17 @@ function rome.world.parseLevel(imageData)
 	print(width..height)
 	for x=0,width-1 do
 		for y=0,height-1 do
-			print("Hello")
+
 			local r,g,b,a = imageData:getPixel(x,y)
 			colorstring=tile.toString(r,g,b)
-			print(colorstring)
+
 			local tiletype=tile[colorstring]
-			print(tiletype.name)
+
 			world[width*x+y]=tiletype
+			if tiletype.collides then
+				local collider=colliders.newBoxCollider(x*20,y*20,20,20)
+				table.insert(rome.world.colliders,collider)
+			end
 		end
 	end
 
@@ -63,11 +77,36 @@ function rome.world.renderLevel()
 			local type=world[world.width*x+y]
 			local sprite=sprites[type.spriteID]
 			if sprite then
-				love.graphics.draw(sprite,x*20,y*20)
+				love.graphics.draw(sprite,x*20+world.xcam,y*20)
 			end
 		end
 	end
 end
+function rome.world.actorCollision(actor)
+	for id,value in ipairs(world.colliders) do
+		if colliders.bvbCollision(value,actor.collider) then
+			
+			return true
+		end
+	end
+	return false
+end
+function rome.world.calculateCameraOffset()
+	local xcam=world.xcam
+	local ycam=world.ycam
+
+	local px=player.pos.x
+	local py=player.pos.y
+
+	xcam=-math.Clamp(px-320,0,640)
+
+	world.xcam=xcam
+
+end
+
+
+
+
 
 
 
@@ -76,7 +115,7 @@ function rome.renderActors()
 		local id=value.spriteID
 		local sprite=rome.sprites[id]
 		if sprite then
-			love.graphics.draw(sprite,value.pos.x,value.pos.y)		
+			love.graphics.draw(sprite,value.pos.x+world.xcam,value.pos.y)		
 		end
 	end
 end
@@ -91,15 +130,65 @@ function standardPlayerMovement(actor,dt)
    if love.keyboard.isDown("left") then
       x = x - (speed * dt)
    end
-
    if love.keyboard.isDown("down") then
       y = y + (speed * dt)
+      player.jump=false
    end
-   if love.keyboard.isDown("up") then
-      y = y - (speed * dt)
-   end
-   actor.pos.x=x
-   actor.pos.y=y
+   
+   
+   player.collider.pos.x=x
+   player.collider.pos.y=y
+   if not rome.world.actorCollision(player) then
+   		actor.pos.x=x
+   		actor.pos.y=y
+	end
+	--try jump
+	if not player.jump then
+
+		if love.keyboard.isDown("up") then
+			
+      		player.jump=true
+      		player.jumpval=500
+      		y=y-(player.jumpval*dt)
+      		player.collider.pos.y=y
+      		if not rome.world.actorCollision(player) then
+      			player.pos.y=y
+      		end
+   		end
+   	
+   	else
+   		if player.jumpval>0 then
+   			player.jumpval=player.jumpval-10
+   		end
+   		y=y-(player.jumpval*dt)
+   		player.collider.pos.y=y
+   		if not rome.world.actorCollision(player) then
+   			
+   			player.pos.y=y
+   		end
+   	end
+	--try gravity
+	y=y+(world.gravity*dt)
+	player.collider.pos.x=x
+   	player.collider.pos.y=y
+   	if not rome.world.actorCollision(player) then
+   		actor.pos.x=x
+   		actor.pos.y=y
+	else
+		player.jump = false
+		
+	end
+	
+
+
+
+
+
+
+
+
+
+
 end
 
 
