@@ -110,8 +110,10 @@ function love.load()
 
 	player.update=standardPlayerMovement
 	testlevel=love.image.newImageData("level/testlevel2.png")
+	
 	rome.world.addLevel(testlevel)
 	rome.world.addLevel(love.image.newImageData("level/testlevel.png"))
+	rome.world.addLevel(love.image.newImageData("level/testlevel3.png"))
 	--rome.world.addLevel(love.image.newImageData("level/testlevel.png"))
 	rome.world.begin()
 	

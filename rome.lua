@@ -17,6 +17,8 @@ local actors=rome.actors
 local sprites=rome.sprites
 local objects=rome.objects
 
+numfootcontacts=0
+
 love.filesystem.load("leveldict.lua")()
 love.filesystem.load("colliders.lua")()
 
@@ -41,11 +43,23 @@ function rome.init()
 	player.update=update						--????
 	player.body=love.physics.newBody(physworld,108,108,"dynamic")
 	player.shape=love.physics.newRectangleShape(16,16)
+	
 	player.fixture=love.physics.newFixture(player.body,player.shape)
 	player.fixture:setUserData("player")
 	player.fixture:setFriction(0)
 	player.fixture:setRestitution(0)
+	
+
+
+	player.foot=love.physics.newRectangleShape(0,8,2,2)
+	player.footfixture=love.physics.newFixture(player.body,player.foot)
+	player.footfixture:setSensor(true)
+	player.footfixture:setUserData("foot")
+	
+
+	
 	player.jump=false
+	player.jumpdelay=0
 
 	table.insert(rome.actors,player)
 
@@ -100,9 +114,11 @@ function rome.world.resetLevel()
 end
 function rome.world.nextLevel()
 	print("Player reached win condition")
-	world.currentlevel=world.currentlevel+1
-	if world.currentlevel>world.numlevels then
-		world.currentlevel=1
+	if not rome.world.resetFlag then
+		world.currentlevel=world.currentlevel+1
+		if world.currentlevel>world.numlevels then
+			world.currentlevel=1
+		end
 	end
 
 	rome.world.resetFlag=true
@@ -145,6 +161,7 @@ function rome.world.parseLevel(imageData)
 				tileobject.shape=love.physics.newRectangleShape(20,20)
 				tileobject.fixture=love.physics.newFixture(tileobject.body,tileobject.shape)
 				tileobject.fixture:setFriction(0)
+				tileobject.fixture:setRestitution(0)
 				tileobject.fixture:setUserData(tiletype.name)
 
 				if tiletype.beginCallback then
@@ -228,6 +245,14 @@ function standardPlayerMovement(actor,dt)
 	actor.body:setAngle(0)
 	actor.pos.x=actor.body:getX()-8
 	actor.pos.y=actor.body:getY()-8
+	if player.jumpdelay>0 then
+		player.jumpdelay=player.jumpdelay-1
+	end
+	if numfootcontacts>=1 and player.jumpdelay<=0 then
+		player.jump=false
+	else
+		player.jump=true
+	end
 
 	local xVel,yVel=actor.body:getLinearVelocity()
 	if love.keyboard.isDown("right") then
@@ -240,24 +265,21 @@ function standardPlayerMovement(actor,dt)
 		actor.body:setLinearVelocity(0,yVel)
 	end
 	if love.keyboard.isDown("up") and player.jump==false then
-		actor.body:applyForce(0,-1000)
-		player.jump=true
+		actor.body:applyForce(0,-1400)
+		player.jumpdelay=10
 	end
-
-	
 
 end
 
 
 function beginContact(a,b,coll)
 	--jump reset check eventually the framework will add callbacks via some sort of observer pattern
-	if a:getUserData()=="player" or b:getuserData()=="player" then
+	if a:getUserData()=="foot" or b:getUserData()=="foot" then
 		--player.jump=false
-		local x1, y1, x2, y2 = coll:getPositions()
-		if y1==y2 then
-			player.jump=false
-		end	
+		
+		numfootcontacts=numfootcontacts+1
 	end
+	
 	for id,value in ipairs(world.physicsCallbacks.beginContacts) do
 		value(a,b,coll)
 	end
@@ -266,6 +288,11 @@ function beginContact(a,b,coll)
 end
 
 function endContact(a,b,coll)
+	if a:getUserData()=="foot" or b:getUserData()=="foot" then
+		--player.jump=false
+		
+		numfootcontacts=numfootcontacts-1
+	end
 
 
 end
